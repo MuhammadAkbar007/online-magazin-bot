@@ -1,0 +1,28 @@
+{
+  "name": "tgbotnodejs",
+  "version": "1.0.0",
+  "description": "Online bazar telegram bot in node js with Elshod Adamov tutorial",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon ."
+  },
+  "keywords": [
+    "online",
+    "bazar",
+    "telegram",
+    "bot",
+    "node",
+    "js",
+    "Elshod",
+    "Adamov",
+    "tutorial"
+  ],
+  "author": "Akbar Ahmad ibn Akrom",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.6.0",
+    "node-telegram-bot-api": "^0.63.0",
+    "nodemon": "^3.0.1"
+  }
+}
