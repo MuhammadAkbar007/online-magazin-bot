@@ -1,5 +1,6 @@
 const User = require("../../model/user");
 const { bot } = require("../bot.js");
+const { adminKeyboard, userKeyboard } = require("../menu/keyboard");
 
 const start = async (msg) => {
   const chatId = msg.from.id;
@@ -31,6 +32,25 @@ const start = async (msg) => {
         },
       },
     );
+  } else {
+    await User.findByIdAndUpdate(
+      checkUser._id,
+      {
+        ...checkUser,
+        action: "menu",
+      },
+      { new: true },
+    );
+    bot.sendMessage(
+      chatId,
+      `Menyuni tanlang, ${checkUser.admin ? "Admin" : checkUser.name} `,
+      {
+        reply_markup: {
+          keyboard: checkUser.admin ? adminKeyboard : userKeyboard,
+          resize_keyboard: true,
+        },
+      },
+    );
   }
 };
 
@@ -50,13 +70,7 @@ const requestContact = async (msg) => {
       `Menyuni tanlang, ${user.admin ? "Admin" : user.name} `,
       {
         reply_markup: {
-          keyboard: [
-            [
-              {
-                text: "Katalog",
-              },
-            ],
-          ],
+          keyboard: user.admin ? adminKeyboard : userKeyboard,
           resize_keyboard: true,
         },
       },
