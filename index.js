@@ -15,10 +15,10 @@ async function dev() {
         useNewUrlParser: true,
         useUnifiedTopology: true,
       })
-      .then(() => console.log("MongoDB connect"))
+      .then(() => console.log("📦 MongoDB connect! 📦"))
       .catch((err) => console.log(err));
 
-    app.listen(process.env.PORT, () => console.log("Server is running!"));
+    app.listen(process.env.PORT, () => console.log("🚀 Server is running! 🚀"));
   } catch (error) {
     console.log(error);
   }

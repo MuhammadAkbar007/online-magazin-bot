@@ -2,6 +2,7 @@ const User = require("../model/user");
 const { bot } = require("./bot.js");
 const { start, requestContact } = require("./helper/start.js");
 const { get_all_users } = require("./helper/users");
+const { get_all_categories, new_category } = require("./helper/category");
 
 bot.on("message", async (msg) => {
   const chatId = msg.from.id;
@@ -9,17 +10,15 @@ bot.on("message", async (msg) => {
 
   const user = await User.findOne({ chatId }).lean();
 
-  if (text === "/start") {
-    start(msg);
-  }
+  if (text === "/start") start(msg);
 
   if (user) {
-    if (user.action === "request_contact" && !user.phone) {
-      requestContact(msg);
-    }
+    if (user.action === "request_contact" && !user.phone) requestContact(msg);
 
-    if (text === "Foydalanuvchilar") {
-      get_all_users(msg);
-    }
+    if (text === "Foydalanuvchilar") get_all_users(msg);
+
+    if (text === "Katalog") get_all_categories(msg);
+
+    if (user.action === "add_category") new_category(msg);
   }
 });
