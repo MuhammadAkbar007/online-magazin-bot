@@ -3,12 +3,27 @@ const Category = require("../../model/category");
 const { bot } = require("../bot.js");
 const { adminKeyboard, userKeyboard } = require("../menu/keyboard");
 
-const get_all_categories = async (msg) => {
-  const chatId = msg.from.id;
-
+const get_all_categories = async (chatId, page = 1) => {
   let user = await User.findOne({ chatId }).lean();
 
-  let categories = await Category.find().lean();
+  let limit = 5;
+  let skip = (page - 1) * limit;
+
+  /*
+	 page = 1	skip = 0
+	 page = 2	skip = 5
+	 page = 3	skip = 10
+	*/
+
+  if (page == 1) {
+    await User.findByIdAndUpdate(
+      user._id,
+      { ...user, action: "category-1" },
+      { new: true },
+    );
+  }
+
+  let categories = await Category.find().skip(skip).limit(limit).lean();
 
   let list = categories.map((category) => [
     {
@@ -28,7 +43,7 @@ const get_all_categories = async (msg) => {
             callback_data: "back_category",
           },
           {
-            text: "1",
+            text: page,
             callback_data: "0",
           },
           {
@@ -81,10 +96,46 @@ const new_category = async (msg) => {
 
     await User.findByIdAndUpdate(user._id, { ...user, action: "category" });
 
-    get_all_categories(msg);
+    get_all_categories(chatId);
   } else {
     bot.sendMessage(chatId, "Sizga bunday so'rov mumkin emas!");
   }
 };
 
-module.exports = { get_all_categories, add_category, new_category };
+const pagination_category = async (chatId, action) => {
+  let user = await User.findOne({ chatId }).lean();
+
+  let page = 1;
+
+  if (user.action.includes("category-")) {
+    page = user.action.split("-")[1];
+
+    if (action == "back_category" && page > 1) page--;
+  }
+
+  if (action == "next_category") page++;
+
+  await User.findByIdAndUpdate(
+    user._id,
+    {
+      ...user,
+      action: `category-${page}`,
+    },
+    { new: true },
+  );
+
+  get_all_categories(chatId, page);
+
+  /*
+ 	next_category-5
+	back_category-4  
+	category-1
+  */
+};
+
+module.exports = {
+  get_all_categories,
+  add_category,
+  new_category,
+  pagination_category,
+};
