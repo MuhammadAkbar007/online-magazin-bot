@@ -1,7 +1,7 @@
 const User = require("../../model/user");
 const Category = require("../../model/category");
 const { bot } = require("../bot.js");
-const { adminKeyboard, userKeyboard } = require("../menu/keyboard");
+// const { adminKeyboard, userKeyboard } = require("../menu/keyboard");
 
 const get_all_categories = async (chatId, page = 1) => {
   let user = await User.findOne({ chatId }).lean();
