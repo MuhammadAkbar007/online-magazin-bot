@@ -25,5 +25,9 @@
     "mongoose": "^7.6.0",
     "node-telegram-bot-api": "^0.63.0",
     "nodemon": "^3.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.52.0",
+    "eslint-config-google": "^0.14.0"
   }
 }

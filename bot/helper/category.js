@@ -1,7 +1,8 @@
+const Product = require("../../model/product");
 const User = require("../../model/user");
 const Category = require("../../model/category");
 const { bot } = require("../bot.js");
-// const { adminKeyboard, userKeyboard } = require("../menu/keyboard");
+const product = require("../../model/product");
 
 const get_all_categories = async (chatId, page = 1) => {
   let user = await User.findOne({ chatId }).lean();
@@ -40,7 +41,7 @@ const get_all_categories = async (chatId, page = 1) => {
         [
           {
             text: "Ortga",
-            callback_data: "back_category",
+            callback_data: page > 1 ? "back_category" : page,
           },
           {
             text: page,
@@ -48,7 +49,7 @@ const get_all_categories = async (chatId, page = 1) => {
           },
           {
             text: "Keyingi",
-            callback_data: "next_category",
+            callback_data: limit == categories.length ? "next_category" : page,
           },
         ],
 
@@ -133,9 +134,141 @@ const pagination_category = async (chatId, action) => {
   */
 };
 
+const show_category = async (chatId, id, page = 1) => {
+  let limit = 5;
+  let skip = (page - 1) * limit;
+
+  let category = await Category.findById(id).lean();
+
+  let user = await User.findOne({ chatId }).lean();
+
+  await User.findByIdAndUpdate(
+    user._id,
+    { ...user, action: `category_${category._id}` },
+    { new: true },
+  );
+
+  let products = await Product.find({ category: category._id })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  let list = products.map((product) => [
+    {
+      text: product.title,
+      callback_data: `product_${product._id}`,
+    },
+  ]);
+
+  const userKeyboard = [];
+  const adminKeyboard = [
+    [
+      {
+        text: "Yangi mahsulot",
+        callback_data: `add_product_${category._id}`,
+      },
+    ],
+    [
+      {
+        text: "Turkumni tahrirlash",
+        callback_data: `edit_category-${category._id}`,
+      },
+      {
+        text: "Turkumni o'chirish",
+        callback_data: `del_category-${category._id}`,
+      },
+    ],
+  ];
+
+  const keyboards = user.admin ? adminKeyboard : userKeyboard;
+
+  bot.sendMessage(
+    chatId,
+    `${category.title} turkumidagi mahsulotlar ro'yxati`,
+    {
+      reply_markup: {
+        remove_keyboard: true,
+        inline_keyboard: [
+          ...list,
+          [
+            {
+              text: "Ortga",
+              callback_data: page > 1 ? "back_product" : page,
+            },
+            {
+              text: page,
+              callback_data: "0",
+            },
+            {
+              text: "Keyingi",
+              callback_data: limit == products.length ? "next_product" : page,
+            },
+          ],
+          ...keyboards,
+        ],
+      },
+    },
+  );
+};
+
+const remove_category = async (chatId, id) => {
+  let user = await User.findOne({ chatId }).lean();
+
+  let category = await Category.findById(id).lean();
+
+  if (user.action !== "del_category") {
+    await User.findByIdAndUpdate(
+      user._id,
+      { ...user, action: "del_category" },
+      { new: true },
+
+      bot.sendMessage(
+        chatId,
+        `Siz ${category.title} turkumni o'chirmoqchisiz. Qaroringiz qat'iymi?`,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: "Bekor qilish",
+                  callback_data: `category_${category._id}`,
+                },
+                {
+                  text: "O'chirish",
+                  callback_data: `del_category-${category._id}`,
+                },
+              ],
+            ],
+          },
+        },
+      ),
+    );
+  } else {
+    let products = await Product.find({ category: category._id })
+      .select(["_id"])
+      .lean();
+
+    await Promise.all(
+      products.map(async (product) => {
+        await Product.findByIdAndRemove(product._id);
+      }),
+    );
+
+    await Category.findByIdAndRemove(id);
+
+    bot.sendMessage(
+      chatId,
+      `${category.title} turkumi o'chirildi.
+Menyuni tanlang`,
+    );
+  }
+};
+
 module.exports = {
   get_all_categories,
   add_category,
   new_category,
   pagination_category,
+  show_category,
+  remove_category,
 };
