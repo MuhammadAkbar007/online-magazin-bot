@@ -26,6 +26,11 @@ const get_all_categories = async (chatId, page = 1) => {
 
   let categories = await Category.find().skip(skip).limit(limit).lean();
 
+  /* if (categories.length == 0) {
+    get_all_categories(chatId, page--);
+    return;
+  } */
+
   let list = categories.map((category) => [
     {
       text: category.title,
